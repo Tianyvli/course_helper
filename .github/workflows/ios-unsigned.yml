@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    shell: bash
+
 concurrency:
   group: ios-unsigned-${{ github.ref }}
   cancel-in-progress: true
@@ -22,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ios-unsigned
           fetch-depth: 0
       - name: Verify upstream baseline and Xcode
         run: |
@@ -62,6 +67,7 @@ jobs:
           flutter build ios "${args[@]}" 2>&1 | tee dist/ios-build.log
       - name: Package and verify IPA
         run: |
+          export BUILD_SOURCE_COMMIT="$(git rev-parse HEAD)"
           python3 scripts/package_unsigned_ipa.py
           flutter --version --machine > dist/flutter-version.json
           xcodebuild -version > dist/xcode-version.txt

@@ -98,7 +98,7 @@ def package(app_path, output_path):
         "minimum_ios": info.get("MinimumOSVersion"),
         "architecture": "arm64", "signed": False,
         "upstream_commit": UPSTREAM_COMMIT,
-        "build_commit": os.environ.get("GITHUB_SHA"),
+        "build_commit": os.environ.get("BUILD_SOURCE_COMMIT", os.environ.get("GITHUB_SHA")),
         "run_url": (
             f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/"
             f"{os.environ['GITHUB_RUN_ID']}"
