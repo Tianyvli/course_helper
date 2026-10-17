@@ -5,7 +5,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show WebSocket, File;
+import 'dart:io' show WebSocket, File, Platform;
 
 import '../api/course.dart';
 import '../api/image.dart';
@@ -165,7 +165,8 @@ class _PresentationPageState extends State<PresentationPage> {
 
   Future<void> _startForegroundService() async {
     // 请求忽略电池优化
-    if (!await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
+    if (Platform.isAndroid &&
+        !await FlutterForegroundTask.isIgnoringBatteryOptimizations) {
       await FlutterForegroundTask.requestIgnoreBatteryOptimization();
     }
 

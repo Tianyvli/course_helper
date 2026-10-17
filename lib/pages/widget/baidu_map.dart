@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'package:flutter_baidu_mapapi_map/flutter_baidu_mapapi_map.dart';
 import 'package:flutter_baidu_mapapi_base/flutter_baidu_mapapi_base.dart';
 import 'package:flutter_baidu_mapapi_search/flutter_baidu_mapapi_search.dart';
@@ -7,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_bmflocation/flutter_bmflocation.dart';
 
 import '../../utils/logger.dart';
+import '../../utils/location_result.dart';
 
 class BaiduMapWidget extends StatefulWidget {
   final Function(BMFCoordinate)? onLocationSelected;
@@ -76,10 +78,20 @@ class _BaiduMapWidgetState extends State<BaiduMapWidget> {
   }
 
   Future<void> _initBaiduLocation() async {
+    await _locationPlugin.setAgreePrivacy(true);
+    if (Platform.isIOS) {
+      // The upstream iOS key can be overridden for the signing Bundle ID.
+      const apiKey = String.fromEnvironment(
+        'BAIDU_IOS_MAP_AK',
+        defaultValue: 'bEu6xF3jXuRZKQwjwrt49iOq',
+      );
+      BMFMapSDK.setApiKeyAndCoordType(apiKey, BMF_COORD_TYPE.BD09LL);
+      await _locationPlugin.authAK(apiKey);
+    }
     _locationPlugin.singleLocationCallback(callback: (BaiduLocation result) {
       if (_isDisposed) return;
 
-      if (result.locType != null && result.locType! > 0) {
+      if (hasLocationCoordinates(result, isIOS: Platform.isIOS)) {
         final coord = BMFCoordinate(result.latitude!, result.longitude!);
         _handleLocationUpdate(coord, result);
       } else {

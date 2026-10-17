@@ -1,0 +1,89 @@
+name: Build unsigned iOS IPA
+
+on:
+  push:
+    branches: [ios-unsigned]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-unsigned-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+      BAIDU_IOS_MAP_AK: ${{ vars.BAIDU_IOS_MAP_AK }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify upstream baseline and Xcode
+        run: |
+          git merge-base --is-ancestor 900ed39b05dcec2386a14a2a636eaceb2173d68a HEAD
+          xcodebuild -version
+          ruby -c ios/Podfile
+          plutil -lint ios/Runner/Info.plist
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.8'
+          channel: stable
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Resolve locked dependencies
+        run: |
+          flutter --version
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Analyze Dart and test platform handling and packaging
+        run: |
+          mkdir -p dist
+          flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee dist/analyze.log
+          flutter test test/location_result_test.dart
+          python3 scripts/test_package_unsigned_ipa.py
+      - name: Configure iOS and resolve CocoaPods dependencies
+        run: |
+          flutter build ios --config-only --release --no-codesign
+          cd ios
+          pod install --repo-update
+      - name: Compile unsigned iPhone release
+        run: |
+          args=(--release --no-codesign --no-pub --build-name=1.2.0 --build-number=1)
+          if [[ -n "$BAIDU_IOS_MAP_AK" ]]; then
+            args+=("--dart-define=BAIDU_IOS_MAP_AK=$BAIDU_IOS_MAP_AK")
+          fi
+          flutter build ios "${args[@]}" 2>&1 | tee dist/ios-build.log
+      - name: Package and verify IPA
+        run: |
+          python3 scripts/package_unsigned_ipa.py
+          flutter --version --machine > dist/flutter-version.json
+          xcodebuild -version > dist/xcode-version.txt
+          cp ios/Podfile.lock dist/Podfile.lock
+          cp pubspec.lock dist/pubspec.lock
+          cp docs/IOS_BUILD.md dist/INSTALL.md
+          (cd dist && shasum -a 256 -c CourseHelper_1.2.0_unsigned.ipa.sha256)
+        working-directory: ${{ github.workspace }}
+      - name: Upload IPA and build records
+        uses: actions/upload-artifact@v4
+        with:
+          name: CourseHelper_1.2.0_unsigned
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-diagnostics
+          path: |
+            dist/*.log
+            ios/Podfile.lock
+          if-no-files-found: ignore
+          retention-days: 30
