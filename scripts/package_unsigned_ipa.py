@@ -9,8 +9,8 @@ import stat
 import struct
 import zipfile
 
-VERSION = "1.2.0"
-UPSTREAM_COMMIT = "900ed39b05dcec2386a14a2a636eaceb2173d68a"
+VERSION = "1.2.1"
+UPSTREAM_COMMIT = "742ad5dbd0ec45c080427e8d18ca5b96fd3f0113"
 BUNDLE_ID = "com.anerycoft.coursehelper"
 PRIVACY_KEYS = (
     "NSCameraUsageDescription", "NSPhotoLibraryUsageDescription",
@@ -116,6 +116,6 @@ def package(app_path, output_path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--app", default="build/ios/iphoneos/Runner.app")
-    parser.add_argument("--output", default="dist/CourseHelper_1.2.0_unsigned.ipa")
+    parser.add_argument("--output", default="dist/CourseHelper_1.2.1_unsigned.ipa")
     args = parser.parse_args()
     print(json.dumps(package(args.app, args.output), indent=2, ensure_ascii=False))

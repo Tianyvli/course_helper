@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
       - name: Verify upstream baseline and Xcode
         run: |
-          git merge-base --is-ancestor 900ed39b05dcec2386a14a2a636eaceb2173d68a HEAD
+          git merge-base --is-ancestor 742ad5dbd0ec45c080427e8d18ca5b96fd3f0113 HEAD
           xcodebuild -version
           ruby -c ios/Podfile
           plutil -lint ios/Runner/Info.plist
@@ -60,7 +60,7 @@ jobs:
           pod install --repo-update
       - name: Compile unsigned iPhone release
         run: |
-          args=(--release --no-codesign --no-pub --build-name=1.2.0 --build-number=1)
+          args=(--release --no-codesign --no-pub --build-name=1.2.1 --build-number=1)
           if [[ -n "$BAIDU_IOS_MAP_AK" ]]; then
             args+=("--dart-define=BAIDU_IOS_MAP_AK=$BAIDU_IOS_MAP_AK")
           fi
@@ -74,12 +74,12 @@ jobs:
           cp ios/Podfile.lock dist/Podfile.lock
           cp pubspec.lock dist/pubspec.lock
           cp docs/IOS_BUILD.md dist/INSTALL.md
-          (cd dist && shasum -a 256 -c CourseHelper_1.2.0_unsigned.ipa.sha256)
+          (cd dist && shasum -a 256 -c CourseHelper_1.2.1_unsigned.ipa.sha256)
         working-directory: ${{ github.workspace }}
       - name: Upload IPA and build records
         uses: actions/upload-artifact@v4
         with:
-          name: CourseHelper_1.2.0_unsigned
+          name: CourseHelper_1.2.1_unsigned
           path: dist/
           if-no-files-found: error
           retention-days: 30

@@ -20,6 +20,8 @@ import '../actives/vote.dart';
 import '../actives/questionnaire.dart';
 import 'content.dart';
 import '../presentation.dart';
+import '../push/groups.dart';
+import '../../push/easemob.dart';
 
 
 class CoursesPage extends StatefulWidget {
@@ -130,6 +132,7 @@ class _CoursesPageState extends State<CoursesPage> with WidgetsBindingObserver {
   List<Course> _courses = [];
   bool _isLoading = true;
   StreamSubscription? _accountChangeSubscription;
+  StreamSubscription? _messageStoreSubscription;
   Timer? _refreshTimer;
   List<dynamic> _lastOnLessonCourses = [];
   bool _isVisible = false;
@@ -159,9 +162,16 @@ class _CoursesPageState extends State<CoursesPage> with WidgetsBindingObserver {
     _isVisible = true;
     _loadCourses();
 
+    // 消息未读变化时重绘
+    _messageStoreSubscription =
+        ActivityMessageStore().changes.listen((_) {
+          if (mounted) setState(() {});
+        });
+
     // 监听账户变更事件
     _accountChangeSubscription =
         AccountChangeNotifier().accountChanges.listen((_) {
+          ActivityMessageStore().clearAll();
           if (mounted) {
             _lastOnLessonCourses = [];
             _loadCourses();
@@ -488,14 +498,38 @@ class _CoursesPageState extends State<CoursesPage> with WidgetsBindingObserver {
     );
   }
 
+  List<Course> _sortedCourses() {
+    final unread = _courses
+        .where((c) => ActivityMessageStore().countOf(c.courseId, c.classId) > 0)
+        .toList();
+    final rest = _courses
+        .where((c) => ActivityMessageStore().countOf(c.courseId, c.classId) == 0)
+        .toList();
+    return [...unread, ...rest];
+  }
+
   @override
   Widget build(BuildContext context) {
+    final courses = _sortedCourses();
     return Scaffold(
       appBar: AppBar(
         title: const Text('课程'),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         actions: [
+          if (PlatformManager().isChaoxing)
+            IconButton(
+              icon: const Icon(Icons.group),
+              tooltip: '群聊',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const GroupsPage(),
+                  ),
+                );
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.qr_code_scanner),
             onPressed: () {
@@ -523,13 +557,42 @@ class _CoursesPageState extends State<CoursesPage> with WidgetsBindingObserver {
                 ),
               )
             : ListView.builder(
-                itemCount: _courses.length,
+                itemCount: courses.length,
                 itemBuilder: (context, index) {
-                  var course = _courses[index];
-                  return Card(
+                  final course = courses[index];
+                  final count = ActivityMessageStore().countOf(course.courseId, course.classId);
+
+                  Widget avatar;
+                  if (course.image.isNotEmpty) {
+                    avatar = AvatarWidget(
+                      imageUrl: course.image,
+                      size: 50,
+                      borderRadius: 6,
+                      iconSize: 25,
+                    );
+                  } else {
+                    avatar = Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.school,
+                          color: Theme.of(context).colorScheme.onSecondaryContainer,
+                          size: 25,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final card = Card(
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: InkWell(
                       onTap: () {
+                        ActivityMessageStore().clear(course.courseId, course.classId);
                         Navigator.push(
                           context,
                           PlatformManager().isChaoxing ?
@@ -558,29 +621,13 @@ class _CoursesPageState extends State<CoursesPage> with WidgetsBindingObserver {
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (course.image.isNotEmpty)
-                                      AvatarWidget(
-                                        imageUrl: course.image,
-                                        size: 50,
-                                        borderRadius: 6,
-                                        iconSize: 25,
+                                    if (count > 0)
+                                      Badge(
+                                        label: Text('$count'),
+                                        child: avatar
                                       )
                                     else
-                                      Container(
-                                        width: 50,
-                                        height: 50,
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context).colorScheme.secondaryContainer,
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: Center(
-                                          child: Icon(
-                                            Icons.school,
-                                            color: Theme.of(context).colorScheme.onSecondaryContainer,
-                                            size: 25,
-                                          ),
-                                        ),
-                                      ),
+                                      avatar,
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Column(
@@ -653,6 +700,7 @@ class _CoursesPageState extends State<CoursesPage> with WidgetsBindingObserver {
                       ),
                     ),
                   );
+                  return card;
                 },
               ),
       ),
@@ -663,6 +711,7 @@ class _CoursesPageState extends State<CoursesPage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _accountChangeSubscription?.cancel();
+    _messageStoreSubscription?.cancel();
     _refreshTimer?.cancel();
     super.dispose();
   }

@@ -23,7 +23,7 @@ class PackagingTests(unittest.TestCase):
         self.app.mkdir()
         self.info = {
             "CFBundleIdentifier": packager.BUNDLE_ID,
-            "CFBundleShortVersionString": "1.2.0", "CFBundleVersion": "1",
+            "CFBundleShortVersionString": "1.2.1", "CFBundleVersion": "1",
             "CFBundleExecutable": "Runner.exe", "MinimumOSVersion": "13.0",
             **{key: "Permission description" for key in packager.PRIVACY_KEYS},
         }

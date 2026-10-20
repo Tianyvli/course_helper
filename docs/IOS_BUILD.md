@@ -1,19 +1,19 @@
-# 课程助手 1.2.0：iOS 未签名构建
+# 课程助手 1.2.1：iOS 未签名构建
 
-源码基于上游 v1.2.0，提交 `900ed39b05dcec2386a14a2a636eaceb2173d68a`。
+源码基于上游 v1.2.1，提交 `742ad5dbd0ec45c080427e8d18ca5b96fd3f0113`。
 保留原始版权和 LICENSE；此构建没有经过 iPhone 真机功能验证。
 
 ## 获取 IPA
 
 在仓库 Actions 页面选择 **Build unsigned iOS IPA**，打开成功的运行，
-下载 **CourseHelper_1.2.0_unsigned** 附件并解压。
+下载 **CourseHelper_1.2.1_unsigned** 附件并解压。
 包含 IPA、SHA-256 校验值、源码与工具链信息、依赖锁文件，保留 30 天。
 推送 `ios-unsigned` 分支会触发构建。若 Fork 中 Actions 尚未启用，先在网页启用。
 默认分支同时提供此工作流入口；手动运行也会检出 `ios-unsigned` 分支的固定版本源码。
 
 ## 签名与安装
 
-`CourseHelper_1.2.0_unsigned.ipa` 是供 iPhone 使用的 arm64 应用，未签名，不能直接安装。
+`CourseHelper_1.2.1_unsigned.ipa` 是供 iPhone 使用的 arm64 应用，未签名，不能直接安装。
 使用你已有的签名工具（例如支持本机系统的 Sideloadly 或 AltStore）导入 IPA，
 通过该工具完成 Apple 账号登录、签名和安装。不要将 Apple 密码或证书提交到仓库。
 有效期、设备限制及开发者模式要求以所选签名方式和 iOS 提示为准。
@@ -50,9 +50,9 @@ key 会嵌入客户端，属于 SDK 客户端配置，不能作为服务端密�
 flutter pub get --enforce-lockfile
 flutter build ios --config-only --release --no-codesign
 (cd ios && pod install --repo-update)
-flutter build ios --release --no-codesign --no-pub --build-name=1.2.0 --build-number=1
+flutter build ios --release --no-codesign --no-pub --build-name=1.2.1 --build-number=1
 python3 scripts/package_unsigned_ipa.py
-(cd dist && shasum -a 256 -c CourseHelper_1.2.0_unsigned.ipa.sha256)
+(cd dist && shasum -a 256 -c CourseHelper_1.2.1_unsigned.ipa.sha256)
 ```
 
 以构建附件记录的 `minimum_ios` 字段为最低系统版本；原生插件兼容性以实际构建结果为准。
