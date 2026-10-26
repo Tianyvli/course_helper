@@ -79,15 +79,6 @@ class _BaiduMapWidgetState extends State<BaiduMapWidget> {
 
   Future<void> _initBaiduLocation() async {
     await _locationPlugin.setAgreePrivacy(true);
-    if (Platform.isIOS) {
-      // The upstream iOS key can be overridden for the signing Bundle ID.
-      const apiKey = String.fromEnvironment(
-        'BAIDU_IOS_MAP_AK',
-        defaultValue: 'bEu6xF3jXuRZKQwjwrt49iOq',
-      );
-      BMFMapSDK.setApiKeyAndCoordType(apiKey, BMF_COORD_TYPE.BD09LL);
-      await _locationPlugin.authAK(apiKey);
-    }
     _locationPlugin.singleLocationCallback(callback: (BaiduLocation result) {
       if (_isDisposed) return;
 
@@ -97,7 +88,7 @@ class _BaiduMapWidgetState extends State<BaiduMapWidget> {
       } else {
         if (mounted) {
           setState(() {
-            _locationInfo = '定位失败，请重试';
+            _locationInfo = '定位失败(code=${result.errorCode}, info=${result.errorInfo})，请重试';
             _isLocating = false;
             _isManualRelocate = false;
           });
@@ -243,10 +234,9 @@ class _BaiduMapWidgetState extends State<BaiduMapWidget> {
 
     BMFMarker marker = BMFMarker.icon(
       position: position,
-      icon: 'images/placeholder.png',
+      icon: 'images/location_on_120dp.png',
       title: '当前位置',
-      scaleX: 0.3,
-      scaleY: 0.3
+      enabled: false // 忽略触摸
     );
     await _mapController!.addMarker(marker);
     if (_isDisposed || _mapController == null) return '';

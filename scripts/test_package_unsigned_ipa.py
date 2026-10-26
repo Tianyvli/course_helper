@@ -23,8 +23,8 @@ class PackagingTests(unittest.TestCase):
         self.app.mkdir()
         self.info = {
             "CFBundleIdentifier": packager.BUNDLE_ID,
-            "CFBundleShortVersionString": "1.2.1", "CFBundleVersion": "1",
-            "CFBundleExecutable": "Runner.exe", "MinimumOSVersion": "13.0",
+            "CFBundleShortVersionString": "1.2.2", "CFBundleVersion": "1",
+            "CFBundleExecutable": "Runner.exe", "MinimumOSVersion": "15.0",
             **{key: "Permission description" for key in packager.PRIVACY_KEYS},
         }
         (self.app / "Info.plist").write_bytes(plistlib.dumps(self.info))

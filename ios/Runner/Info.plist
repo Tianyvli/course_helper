@@ -45,16 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>需要访问您的位置信息来进行位置签到</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>需要访问您的位置信息来进行位置签到</string>
 	<key>NSCameraUsageDescription</key>
 	<string>需要使用相机来扫描二维码</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>需要访问相册以上传图片和课件</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>需要访问相册以保存 PPT 图片</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>需要访问相册以选择二维码和课堂图片</string>
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.pravera.flutter_foreground_task.refresh</string>
@@ -63,7 +65,5 @@
 	<array>
 		<string>fetch</string>
 	</array>
-	<key>io.flutter.embedded_views_preview</key>
-	<true/>
 </dict>
 </plist>
